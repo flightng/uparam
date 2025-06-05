@@ -11,7 +11,12 @@
 #else
 #define LOG_LVL LOG_LVL_WARNING
 #endif
-#include <ulog.h>
+// #include <ulog.h>
+
+#define LOG_E(...) printf(__VA_ARGS__)
+#define LOG_W(...) printf(__VA_ARGS__)
+#define LOG_I(...) printf(__VA_ARGS__)
+#define LOG_D(...) printf(__VA_ARGS__)
 
 #define DEFAULT_PRA_PART "param"
 
