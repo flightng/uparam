@@ -13,12 +13,20 @@
 #endif
 // #include <ulog.h>
 
-#define LOG_E(...) printf(__VA_ARGS__)
-#define LOG_W(...) printf(__VA_ARGS__)
-#define LOG_I(...) printf(__VA_ARGS__)
-#define LOG_D(...) printf(__VA_ARGS__)
+#define LOG_E(...)       \
+    printf(__VA_ARGS__); \
+    printf("\r\n")
+#define LOG_W(...)       \
+    printf(__VA_ARGS__); \
+    printf("\r\n")
+#define LOG_I(...)       \
+    printf(__VA_ARGS__); \
+    printf("\r\n")
+#define LOG_D(...)       \
+    printf(__VA_ARGS__); \
+    printf("\r\n")
 
-#define DEFAULT_PRA_PART "param"
+#define DEFAULT_PRA_PART "param_date"
 
 static char *praram_partition = DEFAULT_PRA_PART;
 static const struct fal_partition *par_part = RT_NULL;
