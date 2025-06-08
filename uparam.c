@@ -361,40 +361,77 @@ static void print_list_header()
     rt_kprintf("----- ----------       ----------  ----  ------  -----\r\n");
 }
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+// 独立函数：将浮点数转换为字符串，保留两位小数
+void float_to_string(float num, char *buf, size_t buf_size) {
+    int pos = 0;
+
+    // 处理整数部分
+    int int_part = (int)num;
+    if (int_part == 0) {
+        buf[pos++] = '0';
+    } else {
+        char temp[16];
+        int temp_pos = 0;
+        while (int_part > 0) {
+            temp[temp_pos++] = '0' + (int_part % 10);
+            int_part /= 10;
+        }
+        // 反转整数部分
+        while (temp_pos > 0) {
+            buf[pos++] = temp[--temp_pos];
+        }
+    }
+
+    // 添加小数点
+    buf[pos++] = '.';
+
+    // 处理小数部分
+    float frac_part = num - (int)num;
+    if (frac_part < 0) frac_part = -frac_part;  // 处理负数情况
+    frac_part *= 100;                           // 保留两位小数
+    int frac_int = (int)(frac_part + 0.5f);     // 四舍五入
+
+    // 提取小数部分的两位
+    buf[pos++] = '0' + (frac_int / 10);
+    buf[pos++] = '0' + (frac_int % 10);
+
+    // 添加字符串结束符
+    buf[pos] = '\0';
+}
+
 /**
-  * @brief  打印单个参数
-  * @note   
-  * @param  *pa: 
-  * @param  index: 
-  * @param  offset: 数组类型的打印起始偏移 
-  * @retval None
-  */
-static void print_element(param_p *pa, uint32_t index, uint32_t offset)
-{
+ * @brief  打印单个参数
+ * @note
+ * @param  *pa:
+ * @param  index:
+ * @param  offset: 数组类型的打印起始偏移
+ * @retval None
+ */
+static void print_element(param_p *pa, uint32_t index, uint32_t offset) {
     uint16_t len;
     char buff[64];
     char value[8];
     param_list *pa_list = (param_list *)pa;
 
-    //打印信息
-    rt_kprintf("%-5d %-16s 0x%-8X  %-4d  ", index, (const char *)pa_list->name,
-               pa->address, pa->size);
+    // 打印信息
+    rt_kprintf("%-5d %-26s 0x%-8X  %-4d  ", index, (const char *)pa_list->name, pa->address, pa->size);
 
     memset(buff, 0, sizeof(buff));
     memset(value, 0, sizeof(value));
 
-    //打印数据
-    if (pa_list->type[0] == 'f')
-    {
+    // 打印数据
+    if (pa_list->type[0] == 'f') {
         memcpy(value, (uint8_t *)pa->address, pa->size);
-        len = sprintf(buff, "Float   %.3f\r\n", *(float *)(value));
-    }
-    else if (pa_list->type[0] == 's')
-    {
+        char float_buf[32];                                                // 临时缓冲区
+        float_to_string(*(float *)(value), float_buf, sizeof(float_buf));  // 调用独立函数
+        len = sprintf(buff, "Float   %s\r\n", float_buf);                  // 使用转换后的字符串
+    } else if (pa_list->type[0] == 's') {
         len = sprintf(buff, "String  %s\r\n", (char *)pa->address);
-    }
-    else if (pa_list->type[0] == 'd')
-    {
+    } else if (pa_list->type[0] == 'd') {
         int64_t convert = 0;
         if (pa->size == 1)
         {
@@ -413,14 +450,10 @@ static void print_element(param_p *pa, uint32_t index, uint32_t offset)
             convert = (int64_t)(*(int64_t *)(pa->address));
         }
         len = sprintf(buff, "Intger  %lld\r\n", convert);
-    }
-    else if (pa_list->type[0] == 'u')
-    {
+    } else if (pa_list->type[0] == 'u') {
         memcpy(value, (uint8_t *)pa->address, pa->size);
         len = sprintf(buff, "UIntger %lld\r\n", *(uint64_t *)(value));
-    }
-    else if (pa_list->type[0] == 'v')
-    {
+    } else if (pa_list->type[0] == 'v') {
         //vector 格式,判断下输出形式
         if (pa_list->type[1] == 'b')
         {
