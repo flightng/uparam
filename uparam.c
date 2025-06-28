@@ -1,6 +1,7 @@
 #include "uparam.h"
 #include <fal.h>
 #include <finsh.h>
+#include "module/math/common.h"
 
 #define UPARAM_DEBUG
 #define UPARAM_FINSH
@@ -361,48 +362,6 @@ static void print_list_header()
     rt_kprintf("----- ----------       ----------  ----  ------  -----\r\n");
 }
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-// 独立函数：将浮点数转换为字符串，保留两位小数
-void float_to_string(float num, char *buf, size_t buf_size) {
-    int pos = 0;
-
-    // 处理整数部分
-    int int_part = (int)num;
-    if (int_part == 0) {
-        buf[pos++] = '0';
-    } else {
-        char temp[16];
-        int temp_pos = 0;
-        while (int_part > 0) {
-            temp[temp_pos++] = '0' + (int_part % 10);
-            int_part /= 10;
-        }
-        // 反转整数部分
-        while (temp_pos > 0) {
-            buf[pos++] = temp[--temp_pos];
-        }
-    }
-
-    // 添加小数点
-    buf[pos++] = '.';
-
-    // 处理小数部分
-    float frac_part = num - (int)num;
-    if (frac_part < 0) frac_part = -frac_part;  // 处理负数情况
-    frac_part *= 100;                           // 保留两位小数
-    int frac_int = (int)(frac_part + 0.5f);     // 四舍五入
-
-    // 提取小数部分的两位
-    buf[pos++] = '0' + (frac_int / 10);
-    buf[pos++] = '0' + (frac_int % 10);
-
-    // 添加字符串结束符
-    buf[pos] = '\0';
-}
-
 /**
  * @brief  打印单个参数
  * @note
@@ -492,7 +451,9 @@ static void print_element(param_p *pa, uint32_t index, uint32_t offset) {
             //最长只打印5个数字
             for (int s = 0; s < (pa->size / 4 - offset) && s < 5; s++)
             {
-                len += sprintf(buff + len, "%.3f ", *((float *)(pa->address) + offset + s));
+                char float_buf[32];
+                float_to_string(*((float *)(pa->address) + offset + s), float_buf, sizeof(float_buf));
+                len += sprintf(buff + len, "%s ", float_buf);
             }
         }
         len += sprintf(buff + len, "\r\n");
@@ -715,9 +676,11 @@ static void par(uint8_t argc, char **argv)
             {
                 float value_f = (float)atof(argv[4]);
                 *(float *)(pa_list->address) = value_f;
-                char buff[32];
-                memset(buff, 0, 32);
-                sprintf(buff, "set index: %d, to value:%.5f \r\n", index, value_f);
+                char buff[64];
+                char float_buf[32];
+                memset(buff, 0, 64);
+                float_to_string(value_f, float_buf, sizeof(float_buf));
+                sprintf(buff, "set index: %d, to value: %s\r\n", index, float_buf);
                 rt_kprintf("%s \r\n", buff);
             }
             else if (pa_list->type[0] == 'd')
@@ -825,7 +788,9 @@ static void par(uint8_t argc, char **argv)
                     {
                         double dv = atof(argv[4 + i]);
                         *((float *)pa_list->address + offset + i) = (float)dv;
-                        slen += sprintf(sbuff + slen, "%.3f ", (float)dv);
+                        char float_buf[32];
+                        float_to_string((float)dv, float_buf, sizeof(float_buf));
+                        slen += sprintf(sbuff + slen, "%s ", float_buf);
                     }
                     rt_kprintf("%s", sbuff);
                 }
