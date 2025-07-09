@@ -588,23 +588,21 @@ INIT_COMPONENT_EXPORT(uparam_init);
 #ifdef UPARAM_FINSH
 #include <finsh.h>
 
-static void par(uint8_t argc, char **argv)
-{
+static void config(uint8_t argc, char **argv) {
 #define CMD_LIST_INDEX 0
 #define CMD_RESET_INDEX 1
 #define CMD_SET_INDEX 2
 #define CMD_ERASE_INDEX 3
 #define CMD_FLUSH_INDEX 4
 #define CMD_RELOAD_INDEX 5
-    const char *help_info[] =
-        {
-            "par list  [*/index] [offset]     - list all param",
-            "par reset [index]                - reset 'index' param to default",
-            "par set   [index] [offset] data1 ... dataN  - set index data[offset] to param with the format",
-            "par erase [yes]                  - erase all param and reset to default",
-            "par flush                        - save all param to flash",
-            "par reload                       - read all param to ram",
-        };
+    const char *help_info[] = {
+        "config list  [*/index] [offset]     - list all param",
+        "config reset [index]                - reset 'index' param to default",
+        "config set   [index] [offset] data1 ... dataN  - set index data[offset] to param with the format",
+        "config erase [yes]                  - erase all param and reset to default",
+        "config flush                        - save all param to flash",
+        "config reload                       - read all param to ram",
+    };
 
     if (argc < 2)
     {
@@ -825,6 +823,6 @@ static void par(uint8_t argc, char **argv)
     }
 }
 
-MSH_CMD_EXPORT(par, uparam operate);
+MSH_CMD_EXPORT(config, uparam operate);
 
 #endif
