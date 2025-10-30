@@ -6,6 +6,11 @@
 #define UPARAM_DEBUG
 #define UPARAM_FINSH
 
+/* 定义vector类型数据显示的最小元素数量 */
+#define MIN_VECTOR_DISPLAY_COUNT  10
+/* 定义vector类型数据显示的缓冲区大小 */
+#define VECTOR_PRINT_BUFFER_SIZE  512
+
 #define LOG_TAG "uparam"
 #ifdef UPARAM_DEBUG
 #define LOG_LVL LOG_LVL_DBG
@@ -375,7 +380,7 @@ void float_to_string(float num, char *buf, size_t buf_size) {
  */
 static void print_element(param_p *pa, uint32_t index, uint32_t offset) {
     uint16_t len;
-    char buff[256];  // 增大缓冲区从64字节到256字节
+    char buff[VECTOR_PRINT_BUFFER_SIZE];  // 使用更大的缓冲区以确保能显示更多元素
     char value[8];
     param_list *pa_list = (param_list *)pa;
 
@@ -421,48 +426,67 @@ static void print_element(param_p *pa, uint32_t index, uint32_t offset) {
         if (pa_list->type[1] == 'b') {
             /**按单字节打印输出 */
             len = sprintf(buff, "V Byte  ");
-            // 打印所有数据，不限制为5个
+            int displayed_count = 0;
+            // 确保至少显示MIN_VECTOR_DISPLAY_COUNT个元素
             for (int s = 0; s < pa->size; s++) {
                 len += sprintf(buff + len, "%02X ", *((uint8_t *)(pa->address) + offset + s));
-                // 防止缓冲区溢出
-                if (len > 240) {
-                    len += sprintf(buff + len, "...");
+                displayed_count++;
+                // 防止缓冲区溢出，但确保至少显示MIN_VECTOR_DISPLAY_COUNT个
+                if (len > (VECTOR_PRINT_BUFFER_SIZE - 20) && displayed_count >= MIN_VECTOR_DISPLAY_COUNT) {
+                    if (s < pa->size - 1) {
+                        len += sprintf(buff + len, "...");
+                    }
                     break;
                 }
             }
         } else if (pa_list->type[1] == 'w') {
             /**按双字节打印输出 */
             len = sprintf(buff, "V Word  ");
-            // 打印所有数据，不限制为5个
-            for (int s = 0; s < (pa->size / 2 - offset); s++) {
+            int displayed_count = 0;
+            int total_elements = pa->size / 2 - offset;
+            // 确保至少显示MIN_VECTOR_DISPLAY_COUNT个元素
+            for (int s = 0; s < total_elements; s++) {
                 len += sprintf(buff + len, "%04X ", *((uint16_t *)(pa->address) + offset + s));
-                // 防止缓冲区溢出
-                if (len > 230) {
-                    len += sprintf(buff + len, "...");
+                displayed_count++;
+                // 防止缓冲区溢出，但确保至少显示MIN_VECTOR_DISPLAY_COUNT个
+                if (len > (VECTOR_PRINT_BUFFER_SIZE - 20) && displayed_count >= MIN_VECTOR_DISPLAY_COUNT) {
+                    if (s < total_elements - 1) {
+                        len += sprintf(buff + len, "...");
+                    }
                     break;
                 }
             }
         } else if (pa_list->type[1] == 'd') {
             /**按四字节打印输出 */
             len = sprintf(buff, "V Dword ");
-            // 打印所有数据，不限制为5个
-            for (int s = 0; s < (pa->size / 4 - offset); s++) {
+            int displayed_count = 0;
+            int total_elements = pa->size / 4 - offset;
+            // 确保至少显示MIN_VECTOR_DISPLAY_COUNT个元素
+            for (int s = 0; s < total_elements; s++) {
                 len += sprintf(buff + len, "%08X ", *((uint32_t *)(pa->address) + offset + s));
-                // 防止缓冲区溢出
-                if (len > 220) {
-                    len += sprintf(buff + len, "...");
+                displayed_count++;
+                // 防止缓冲区溢出，但确保至少显示MIN_VECTOR_DISPLAY_COUNT个
+                if (len > (VECTOR_PRINT_BUFFER_SIZE - 20) && displayed_count >= MIN_VECTOR_DISPLAY_COUNT) {
+                    if (s < total_elements - 1) {
+                        len += sprintf(buff + len, "...");
+                    }
                     break;
                 }
             }
         } else if (pa_list->type[1] == 'f') {
             /**按float打印输出 */
             len = sprintf(buff, "V Float ");
-            // 打印所有数据，不限制为5个
-            for (int s = 0; s < (pa->size / 4 - offset); s++) {
+            int displayed_count = 0;
+            int total_elements = pa->size / 4 - offset;
+            // 确保至少显示MIN_VECTOR_DISPLAY_COUNT个元素
+            for (int s = 0; s < total_elements; s++) {
                 len += sprintf(buff + len, "%.3f ", *((float *)(pa->address) + offset + s));
-                // 防止缓冲区溢出
-                if (len > 220) {
-                    len += sprintf(buff + len, "...");
+                displayed_count++;
+                // 防止缓冲区溢出，但确保至少显示MIN_VECTOR_DISPLAY_COUNT个
+                if (len > (VECTOR_PRINT_BUFFER_SIZE - 30) && displayed_count >= MIN_VECTOR_DISPLAY_COUNT) {
+                    if (s < total_elements - 1) {
+                        len += sprintf(buff + len, "...");
+                    }
                     break;
                 }
             }
