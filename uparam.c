@@ -5,6 +5,7 @@
 
 #define UPARAM_DEBUG
 #define UPARAM_FINSH
+#define UPARAM_VECTOR_DISPLAY_MAX 10  // Maximum number of vector elements to display
 
 #define LOG_TAG "uparam"
 #ifdef UPARAM_DEBUG
@@ -418,42 +419,54 @@ static void print_element(param_p *pa, uint32_t index, uint32_t offset) {
         {
             /**按单字节打印输出 */
             len = sprintf(buff, "V Byte  ");
-            //最长只打印5个数字
-            for (int s = 0; s < pa->size && s < 5; s++)
+            // Display up to UPARAM_VECTOR_DISPLAY_MAX elements
+            for (int s = 0; s < pa->size && s < UPARAM_VECTOR_DISPLAY_MAX; s++)
             {
                 len += sprintf(buff + len, "%02X ", *((uint8_t *)(pa->address) + offset + s));
+            }
+            if (pa->size > UPARAM_VECTOR_DISPLAY_MAX) {
+                len += sprintf(buff + len, "...");
             }
         }
         else if (pa_list->type[1] == 'w')
         {
             /**按双字节打印输出 */
             len = sprintf(buff, "V Word  ");
-            //最长只打印5个数字
-            for (int s = 0; s < (pa->size / 2 - offset) && s < 5; s++)
+            // Display up to UPARAM_VECTOR_DISPLAY_MAX elements
+            for (int s = 0; s < (pa->size / 2 - offset) && s < UPARAM_VECTOR_DISPLAY_MAX; s++)
             {
                 len += sprintf(buff + len, "%04X ", *((uint16_t *)(pa->address) + offset + s));
+            }
+            if ((pa->size / 2 - offset) > UPARAM_VECTOR_DISPLAY_MAX) {
+                len += sprintf(buff + len, "...");
             }
         }
         else if (pa_list->type[1] == 'd')
         {
             /**按四字节打印输出 */
             len = sprintf(buff, "V Dword ");
-            //最长只打印5个数字
-            for (int s = 0; s < (pa->size / 4 - offset) && s < 5; s++)
+            // Display up to UPARAM_VECTOR_DISPLAY_MAX elements
+            for (int s = 0; s < (pa->size / 4 - offset) && s < UPARAM_VECTOR_DISPLAY_MAX; s++)
             {
                 len += sprintf(buff + len, "%08X ", *((uint32_t *)(pa->address) + offset + s));
+            }
+            if ((pa->size / 4 - offset) > UPARAM_VECTOR_DISPLAY_MAX) {
+                len += sprintf(buff + len, "...");
             }
         }
         else if (pa_list->type[1] == 'f')
         {
             /**按float打印输出 */
             len = sprintf(buff, "V Float ");
-            //最长只打印5个数字
-            for (int s = 0; s < (pa->size / 4 - offset) && s < 5; s++)
+            // Display up to UPARAM_VECTOR_DISPLAY_MAX elements
+            for (int s = 0; s < (pa->size / 4 - offset) && s < UPARAM_VECTOR_DISPLAY_MAX; s++)
             {
                 char float_buf[32];
                 float_to_string(*((float *)(pa->address) + offset + s), float_buf, sizeof(float_buf));
                 len += sprintf(buff + len, "%s ", float_buf);
+            }
+            if ((pa->size / 4 - offset) > UPARAM_VECTOR_DISPLAY_MAX) {
+                len += sprintf(buff + len, "...");
             }
         }
         len += sprintf(buff + len, "\r\n");
